@@ -2,21 +2,31 @@
   hosts: localhost
   become: true
 
-  #apt tasks
+
   tasks:
-    - name: Install essential packages
+    - name: Update apt cache and install core tools
       apt:
         name:
           - nala
           - neovim
           - git
+        state: present
+        update_cache: yes
+
+    - name: Install Desktop Environment components
+      apt:
+        name:
           - xserver-xorg
           - i3
           - lightdm
+        state: present
+
+    - name: Install Additional Utilities
+      apt:
+        name:
           - kitty
           - suckless-tools
         state: present
-        update_cache: yes # Update cache once before installing
 
     - name: download lazyvim starter
       ansible.builtin.git:
