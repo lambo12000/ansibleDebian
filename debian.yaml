@@ -1,6 +1,6 @@
 - name: Install Basic Packages
   hosts: localhost
-  become: yes
+  become: true
 
   #apt tasks
   tasks:
