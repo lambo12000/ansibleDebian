@@ -1,12 +1,55 @@
 name: Install Nala on Debian
 hosts: localhost
 become: yes
+
+#apt tasks
 tasks:
   - name: update apt cache
     apt:
       update_cache: yes
-      
+
   - name: install nala
     apt:
       name: nala
       state: present
+
+  - name: install neovim
+    apt:
+      name: neovim
+      state: present
+
+  - name: install git
+    apt:
+      name: git
+      state: present
+
+  - name: install xserver-xorg
+    apt:
+      name: xserver-xorg
+      state: present
+
+  - name: install i3
+    apt:
+      name: i3
+      state: present
+
+  - name: install lightdm
+    apt:
+      name: lightdm
+      state: present
+
+  - name: install kitty
+    apt:
+      name: kitty
+      state: present
+
+  - name: install suckless-tools
+    apt:
+      name: suckless-tools
+      state: present
+
+#vim tasks
+  - name: download lazyvim starter
+    ansible.builtin.git:
+      repo: https://github.com/LazyVim/starter
+      dest: ~/.config/nvim
