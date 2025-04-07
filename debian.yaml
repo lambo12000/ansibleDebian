@@ -1,4 +1,4 @@
-- name: Install Nala on Debian
+- name: Install Basic Packages
   hosts: localhost
   become: yes
 
