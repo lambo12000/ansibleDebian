@@ -17,8 +17,6 @@ The playbook executes the following tasks:
     *   Adds `alias sudo="sudo "` to `~/.bashrc`.
     *   Adds `alias apt="nala"` to `~/.bashrc`.
 
-**Note:** Package installations require root privileges, while alias configurations are performed for the user running the playbook.
-
 ## How to Run
 
 Execute the playbook from within the `ansibleDebian` directory using the following command:
