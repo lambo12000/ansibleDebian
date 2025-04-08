@@ -27,16 +27,24 @@
           - kitty
           - suckless-tools
         state: present
+    
+    - name: Check if nvim config directory exists
+      ansible.builtin.stat:
+        path: "{{ ansible_user_dir }}/.config/nvim"
+      register: nvim_config_stat
 
     - name: download lazyvim starter
       ansible.builtin.git:
         repo: https://github.com/LazyVim/starter
         dest: "{{ ansible_user_dir }}/.config/nvim"
+      when: not nvim_config_stat.stat.exists
+      register: lazyvim_clone_result
 
     - name: remove the .git folder from lazyvim starter
       ansible.builtin.file:
         path: "{{ ansible_user_dir }}/.config/nvim/.git"
         state: absent
+      when: lazyvim_clone_result.changed
 
     - name: alias sudo to 'sudo ' in bashrc
       ansible.builtin.lineinfile:
