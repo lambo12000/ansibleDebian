@@ -9,6 +9,7 @@
           - vim
           - nala
           - git
+          - default-jre
         state: present
         update_cache: yes
       become: true
@@ -44,3 +45,25 @@
         line: 'alias apt="nala"'
         insertafter: EOF
         state: present
+
+    # --- End Shell Aliases --- #
+
+    #i3 config
+    - name: Clone personal i3 config repo to temp location
+      ansible.builtin.git:
+        repo: https://github.com/lambo12000/i3_vms.git
+        dest: /tmp/i3_vms
+        clone: yes
+        update: yes # Optional: pull latest changes if repo already cloned
+
+    - name: Move i3 config folder to user config directory
+      ansible.builtin.copy:
+        src: /tmp/i3_vms/i3
+        dest: "{{ ansible_user_dir }}/.config/"
+        remote_src: yes
+        directory_mode: preserve # Keeps original permissions
+
+    - name: Remove temporary i3 config repo clone
+      ansible.builtin.file:
+        path: /tmp/i3_vms
+        state: absent
