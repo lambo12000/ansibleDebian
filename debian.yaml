@@ -9,6 +9,7 @@
           - vim
           - nala
           - git
+          - firefox
           - default-jre
         state: present
         update_cache: yes
@@ -30,7 +31,15 @@
           - suckless-tools
         state: present
       become: true
-    
+
+    - name: Refresh snap packages if running Ubuntu
+      ansible.builtin.command:
+        cmd: snap refresh
+      when: ansible_distribution == 'Ubuntu'
+      become: true
+      changed_when: false # snap refresh output is verbose, don't mark as changed unless it errors
+      failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
+
     # --- End Install Basic Packages --- #
 
     # --- Shell Aliases --- #
