@@ -32,3 +32,8 @@
       ansible.builtin.git:
         repo: https://github.com/LazyVim/starter
         dest: "{{ ansible_user_dir }}/.config/nvim"
+
+    - name: remove the .git folder from lazyvim starter
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.config/nvim/.git"
+        state: absent
