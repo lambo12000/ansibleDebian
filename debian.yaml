@@ -30,24 +30,50 @@
         state: present
       become: true
     
+    # --- Neovim LazyVim Setup --- #
+    # Check if Neovim version is >= 0.10.0 before attempting setup
+    - name: Get Neovim version
+      ansible.builtin.command: nvim --version
+      register: nvim_version_raw
+      changed_when: false
+      failed_when: false # Don't fail if nvim command is not found or errors
+
+    - name: Check Neovim version requirement (>= 0.10.0)
+      ansible.builtin.set_fact:
+        neovim_version: "{{ nvim_version_raw.stdout | regex_search('NVIM v(\\d+\\.\\d+\\.\\d+)', '\\1') | first | default('0.0.0') }}"
+      when: nvim_version_raw.rc == 0 # Only try to parse if command succeeded
+
+    - name: Set Neovim version check flag
+      ansible.builtin.set_fact:
+        neovim_version_ok: "{{ neovim_version is defined and neovim_version | version('>=', '0.10.0') }}"
+
+    # Only proceed if Neovim version is sufficient
     - name: Check if nvim config directory exists
       ansible.builtin.stat:
         path: "{{ ansible_user_dir }}/.config/nvim"
       register: nvim_config_stat
+      when: neovim_version_ok | default(false)
 
     - name: download lazyvim starter
       ansible.builtin.git:
         repo: https://github.com/LazyVim/starter
         dest: "{{ ansible_user_dir }}/.config/nvim"
-      when: not nvim_config_stat.stat.exists
+      when: 
+        - neovim_version_ok | default(false)
+        - nvim_config_stat.stat is defined
+        - not nvim_config_stat.stat.exists
       register: lazyvim_clone_result
 
+    # Only remove .git if the repo was actually cloned in this run
     - name: remove the .git folder from lazyvim starter
       ansible.builtin.file:
         path: "{{ ansible_user_dir }}/.config/nvim/.git"
         state: absent
-      when: lazyvim_clone_result.changed
+      when: 
+        - neovim_version_ok | default(false)
+        - lazyvim_clone_result.changed
 
+    # --- Shell Aliases --- #
     - name: alias sudo to 'sudo ' in bashrc
       ansible.builtin.lineinfile:
         path: "{{ ansible_user_dir }}/.bashrc"
