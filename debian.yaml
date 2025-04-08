@@ -9,6 +9,7 @@
           - vim
           - nala
           - git
+          - ufw
           - firefox
           - default-jre
         state: present
@@ -80,3 +81,23 @@
         state: absent
 
     # --- End i3 Config --- #
+
+    # --- ufw Config --- #
+    - name: Set ufw default deny incoming
+      ansible.builtin.ufw:
+        direction: incoming
+        policy: deny
+      become: true
+
+    - name: Set ufw default allow outgoing
+      ansible.builtin.ufw:
+        direction: outgoing
+        policy: allow
+      become: true
+
+    - name: Enable ufw
+      ansible.builtin.ufw:
+        state: enabled
+      become: true
+
+    # --- End ufw Config --- #
