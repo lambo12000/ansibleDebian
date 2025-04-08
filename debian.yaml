@@ -1,7 +1,7 @@
 - name: Install Basic Packages
   hosts: localhost
 
-
+# --- Install Basic Packages --- #
   tasks:
     - name: Update apt cache and install core tools
       apt:
@@ -31,6 +31,8 @@
         state: present
       become: true
     
+    # --- End Install Basic Packages --- #
+
     # --- Shell Aliases --- #
     - name: alias sudo to 'sudo ' in bashrc
       ansible.builtin.lineinfile:
@@ -48,7 +50,7 @@
 
     # --- End Shell Aliases --- #
 
-    #i3 config
+    # --- i3 Config --- #
     - name: Clone personal i3 config repo to temp location
       ansible.builtin.git:
         repo: https://github.com/lambo12000/i3_vms.git
@@ -67,3 +69,5 @@
       ansible.builtin.file:
         path: /tmp/i3_vms
         state: absent
+
+    # --- End i3 Config --- #
