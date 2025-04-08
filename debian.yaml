@@ -1,6 +1,5 @@
 - name: Install Basic Packages
   hosts: localhost
-  become: true
 
 
   tasks:
@@ -12,6 +11,7 @@
           - git
         state: present
         update_cache: yes
+      become: true
 
     - name: Install Desktop Environment components
       apt:
@@ -20,6 +20,7 @@
           - i3
           - lightdm
         state: present
+      become: true
 
     - name: Install Additional Utilities
       apt:
@@ -27,6 +28,7 @@
           - kitty
           - suckless-tools
         state: present
+      become: true
     
     - name: Check if nvim config directory exists
       ansible.builtin.stat:
