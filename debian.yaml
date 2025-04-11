@@ -15,6 +15,14 @@
         state: present
         update_cache: yes
       become: true
+    
+    - name: install ghostty with snap on ubuntu with --classic
+      ansible.builtin.command:
+        cmd: snap install ghostty --classic
+      when: ansible_distribution == 'Ubuntu'
+      become: true
+      changed_when: false # snap install output is verbose, don't mark as changed unless it errors
+      failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
 
     - name: Install Desktop Environment components
       apt:

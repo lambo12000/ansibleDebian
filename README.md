@@ -26,6 +26,8 @@ The playbook executes the following tasks:
     *   Sets the default incoming policy to `deny`.
     *   Sets the default outgoing policy to `allow`.
     *   Enables the `ufw` firewall.
+8.  **Install Ghostty (Snap):**
+    *   Installs `ghostty` with snap if the operating system is detected as Ubuntu.
 
 ## How to Run
 
