@@ -28,7 +28,7 @@
     - name: generate ghostty config file with ghostty config
       ansible.builtin.command:
         cmd: ghostty config
-      become: false
+      become: false #important to not generate config as root
       register: ghostty_config
       changed_when: false # ghostty config output is verbose, don't mark as changed unless it errors
       failed_when: false # Allow to fail gracefully if ghostty isn't installed or has issues
