@@ -24,6 +24,17 @@
       changed_when: false # snap install output is verbose, don't mark as changed unless it errors
       failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
 
+    # --- Ghostty Config --- #
+    - name: edit ghostty theme in config to theme=tokyonight-storm
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.config/ghostty/config"
+        line: 'theme=tokyonight-storm'
+        insertafter: EOF
+        state: present
+
+    # --- End Ghostty Config --- #
+
+    # --- Install Desktop Environment components --- #
     - name: Install Desktop Environment components
       apt:
         name:
