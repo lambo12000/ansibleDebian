@@ -25,11 +25,13 @@
       failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
 
     # --- Ghostty Config --- #
-    - name: make a ghostty config file
-      ansible.builtin.file:
-        path: "{{ ansible_user_dir }}/.config/ghostty/config"
-        state: file
-        mode: '0644'
+    - name: generate ghostty config file with ghostty config
+      ansible.builtin.command:
+        cmd: ghostty config
+      become: false
+      register: ghostty_config
+      changed_when: false # ghostty config output is verbose, don't mark as changed unless it errors
+      failed_when: false # Allow to fail gracefully if ghostty isn't installed or has issues
 
     - name: edit ghostty theme in config to theme=tokyonight-storm
       ansible.builtin.lineinfile:
