@@ -6,6 +6,7 @@
     - name: Update apt cache and install core tools
       apt:
         name:
+          - zsh
           - vim
           - nala
           - git
@@ -15,7 +16,45 @@
         state: present
         update_cache: yes
       become: true
-    
+
+    # --- zsh --- #
+    - name: Change shell to zsh using chsh
+      ansible.builtin.command:
+        cmd: chsh -s /bin/zsh {{ ansible_user }}
+      become: false
+      register: chsh_result
+      changed_when: chsh_result.rc == 0
+      failed_when: chsh_result.rc != 0
+
+    - name: Install Oh My Zsh (unattended)
+      ansible.builtin.shell: |
+        RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+      args:
+        executable: /bin/zsh
+        creates: "/home/{{ ansible_user }}/.oh-my-zsh"
+      become: false
+      environment:
+        USER: "{{ ansible_user }}"
+        HOME: "/home/{{ ansible_user }}"
+
+    - name: Clone Powerlevel10k theme
+      ansible.builtin.git:
+        repo: 'https://github.com/romkatv/powerlevel10k.git'
+        dest: "/home/{{ ansible_user }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        version: master
+        update: yes
+      become: false
+
+    - name: Set Powerlevel10k as Oh My Zsh theme
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_user }}/.zshrc"
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+        state: present
+      become: false
+    # --- End zsh --- #
+
+    # --- Ghostty --- #
     - name: install ghostty with snap on ubuntu with --classic
       ansible.builtin.command:
         cmd: snap install ghostty --classic
@@ -24,7 +63,7 @@
       changed_when: false # snap install output is verbose, don't mark as changed unless it errors
       failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
 
-    # --- Ghostty Config --- #
+    # --- Ghostty --- #
     - name: generate ghostty config file with ghostty config
       ansible.builtin.command:
         cmd: ghostty config
@@ -40,7 +79,7 @@
         insertafter: EOF
         state: present
 
-    # --- End Ghostty Config --- #
+    # --- End Ghostty --- #
 
     # --- Install Desktop Environment components --- #
     - name: Install Desktop Environment components
