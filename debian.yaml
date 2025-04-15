@@ -20,7 +20,7 @@
     # --- zsh --- #
     - name: Change shell to zsh using chsh
       ansible.builtin.command:
-        cmd: chsh -s /bin/zsh {{ ansible_user }}
+        cmd: chsh -s /bin/zsh
       become: false
       register: chsh_result
       changed_when: chsh_result.rc == 0
@@ -31,23 +31,23 @@
         RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
       args:
         executable: /bin/zsh
-        creates: "/home/{{ ansible_user }}/.oh-my-zsh"
+        creates: "{{ ansible_user_dir }}/.oh-my-zsh"
       become: false
       environment:
         USER: "{{ ansible_user }}"
-        HOME: "/home/{{ ansible_user }}"
+        HOME: "{{ ansible_user_dir }}"
 
     - name: Clone Powerlevel10k theme
       ansible.builtin.git:
         repo: 'https://github.com/romkatv/powerlevel10k.git'
-        dest: "/home/{{ ansible_user }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        dest: "{{ ansible_user_dir }}/.oh-my-zsh/custom/themes/powerlevel10k"
         version: master
         update: yes
       become: false
 
     - name: Set Powerlevel10k as Oh My Zsh theme
       ansible.builtin.lineinfile:
-        path: "/home/{{ ansible_user }}/.zshrc"
+        path: "{{ ansible_user_dir }}/.zshrc"
         regexp: '^ZSH_THEME='
         line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
         state: present
