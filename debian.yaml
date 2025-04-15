@@ -18,32 +18,48 @@
       become: true
 
     # --- zsh --- #
-    - name: Change shell to zsh using chsh
+    - name: Change shell to zsh for user
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        shell: /bin/zsh
+      become: true
+      register: shell_change
+      failed_when: shell_change is failed
+
+    - name: Set ZSH as default shell using chsh (fallback method)
       ansible.builtin.command:
-        cmd: chsh -s /bin/zsh
+        cmd: "chsh -s /bin/zsh {{ ansible_user }}"
       become: true
       register: chsh_result
       changed_when: chsh_result.rc == 0
       failed_when: chsh_result.rc != 0
+      when: shell_change is failed
+
+    - name: Ensure .oh-my-zsh directory doesn't exist before installation
+      ansible.builtin.stat:
+        path: "{{ ansible_user_dir }}/.oh-my-zsh"
+      register: ohmyzsh_dir
+      become: false
 
     - name: Install Oh My Zsh (unattended)
       ansible.builtin.shell: |
-        RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+        curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended
       args:
-        executable: /bin/zsh
         creates: "{{ ansible_user_dir }}/.oh-my-zsh"
       become: false
-      environment:
-        USER: "{{ ansible_user }}"
-        HOME: "{{ ansible_user_dir }}"
+      when: not ohmyzsh_dir.stat.exists
+      register: ohmyzsh_install
+      failed_when: ohmyzsh_install.rc != 0 and not ohmyzsh_dir.stat.exists
 
     - name: Clone Powerlevel10k theme
       ansible.builtin.git:
         repo: 'https://github.com/romkatv/powerlevel10k.git'
         dest: "{{ ansible_user_dir }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        depth: 1
         version: master
-        update: yes
       become: false
+      register: p10k_clone
+      failed_when: p10k_clone is failed
 
     - name: Set Powerlevel10k as Oh My Zsh theme
       ansible.builtin.lineinfile:
@@ -51,7 +67,10 @@
         regexp: '^ZSH_THEME='
         line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
         state: present
+        backup: yes
       become: false
+      register: theme_set
+      failed_when: theme_set is failed
     # --- End zsh --- #
 
     # --- Ghostty --- #
