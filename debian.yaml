@@ -20,7 +20,7 @@
     # --- zsh --- #
     - name: Change shell to zsh for user
       ansible.builtin.user:
-        name: "{{ ansible_user }}"
+        name: "{{ ansible_user_id }}"
         shell: /bin/zsh
       become: true
       register: shell_change
@@ -28,7 +28,7 @@
 
     - name: Set ZSH as default shell using chsh (fallback method)
       ansible.builtin.command:
-        cmd: "chsh -s /bin/zsh {{ ansible_user }}"
+        cmd: "chsh -s /bin/zsh {{ ansible_user_id }}"
       become: true
       register: chsh_result
       changed_when: chsh_result.rc == 0
@@ -37,7 +37,7 @@
 
     - name: Ensure .oh-my-zsh directory doesn't exist before installation
       ansible.builtin.stat:
-        path: "{{ ansible_user_dir }}/.oh-my-zsh"
+        path: "{{ ansible_env.HOME }}/.oh-my-zsh"
       register: ohmyzsh_dir
       become: false
 
@@ -45,7 +45,7 @@
       ansible.builtin.shell: |
         curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended
       args:
-        creates: "{{ ansible_user_dir }}/.oh-my-zsh"
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
       become: false
       when: not ohmyzsh_dir.stat.exists
       register: ohmyzsh_install
@@ -54,7 +54,7 @@
     - name: Clone Powerlevel10k theme
       ansible.builtin.git:
         repo: 'https://github.com/romkatv/powerlevel10k.git'
-        dest: "{{ ansible_user_dir }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
         depth: 1
         version: master
       become: false
@@ -63,7 +63,7 @@
 
     - name: Set Powerlevel10k as Oh My Zsh theme
       ansible.builtin.lineinfile:
-        path: "{{ ansible_user_dir }}/.zshrc"
+        path: "{{ ansible_env.HOME }}/.zshrc"
         regexp: '^ZSH_THEME='
         line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
         state: present
@@ -93,7 +93,7 @@
 
     - name: edit ghostty theme in config to theme=tokyonight-storm
       ansible.builtin.lineinfile:
-        path: "{{ ansible_user_dir }}/.config/ghostty/config"
+        path: "{{ ansible_env.HOME }}/.config/ghostty/config"
         line: 'theme=tokyonight-storm'
         insertafter: EOF
         state: present
@@ -131,14 +131,14 @@
     # --- Shell Aliases --- #
     - name: alias sudo to 'sudo ' in bashrc
       ansible.builtin.lineinfile:
-        path: "{{ ansible_user_dir }}/.bashrc"
+        path: "{{ ansible_env.HOME }}/.bashrc"
         line: 'alias sudo="sudo "'
         insertafter: EOF
         state: present
 
     - name: alias apt to 'nala' in bashrc
       ansible.builtin.lineinfile:
-        path: "{{ ansible_user_dir }}/.bashrc"
+        path: "{{ ansible_env.HOME }}/.bashrc"
         line: 'alias apt="nala"'
         insertafter: EOF
         state: present
@@ -156,7 +156,7 @@
     - name: Move i3 config folder to user config directory
       ansible.builtin.copy:
         src: /tmp/i3_vms/i3
-        dest: "{{ ansible_user_dir }}/.config/"
+        dest: "{{ ansible_env.HOME }}/.config/"
         remote_src: yes
         directory_mode: preserve # Keeps original permissions
 
