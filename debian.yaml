@@ -21,7 +21,7 @@
     - name: Change shell to zsh using chsh
       ansible.builtin.command:
         cmd: chsh -s /bin/zsh
-      become: false
+      become: true
       register: chsh_result
       changed_when: chsh_result.rc == 0
       failed_when: chsh_result.rc != 0
