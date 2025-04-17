@@ -16,9 +16,8 @@
         state: present
         update_cache: yes
       become: true
-    
-      # --- Install Desktop Environment components --- #
-      - name: Install Desktop Environment components
+
+    - name: Install Desktop Environment components
       apt:
         name:
           - xserver-xorg
