@@ -1,0 +1,67 @@
+- name: Step 2: User Environment Setup
+  hosts: localhost
+  become: true
+  tasks:
+    - name: alias sudo to 'sudo ' in bashrc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'alias sudo="sudo "'
+        insertafter: EOF
+        state: present
+
+    - name: alias apt to 'nala' in bashrc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'alias apt="nala"'
+        insertafter: EOF
+        state: present
+
+    - name: Clone personal i3 config repo to temp location
+      ansible.builtin.git:
+        repo: https://github.com/lambo12000/i3_vms.git
+        dest: /tmp/i3_vms
+        clone: yes
+        update: yes
+
+    - name: Move i3 config folder to user config directory
+      ansible.builtin.copy:
+        src: /tmp/i3_vms/i3
+        dest: "{{ ansible_env.HOME }}/.config/"
+        remote_src: yes
+        directory_mode: preserve
+
+    - name: Remove temporary i3 config repo clone
+      ansible.builtin.file:
+        path: /tmp/i3_vms
+        state: absent
+
+    - name: Change shell to zsh for user
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        shell: /bin/zsh
+      register: shell_change
+      failed_when: shell_change is failed
+
+    - name: Set ZSH as default shell using chsh (fallback method)
+      ansible.builtin.command:
+        cmd: "chsh -s /bin/zsh {{ ansible_user_id }}"
+      register: chsh_result
+      changed_when: chsh_result.rc == 0
+      failed_when: chsh_result.rc != 0
+      when: shell_change is failed
+
+    - name: Ensure .oh-my-zsh directory doesn't exist before installation
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      register: ohmyzsh_dir
+      become: false
+
+    - name: Install Oh My Zsh (unattended)
+      ansible.builtin.shell: |
+        curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended
+      args:
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      become: false
+      when: not ohmyzsh_dir.stat.exists
+      register: ohmyzsh_install
+      failed_when: ohmyzsh_install.rc != 0 and not ohmyzsh_dir.stat.exists

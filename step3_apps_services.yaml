@@ -1,0 +1,39 @@
+- name: Step 3: Apps and Services
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Set ufw default deny incoming
+      ansible.builtin.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set ufw default allow outgoing
+      ansible.builtin.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Enable ufw
+      ansible.builtin.ufw:
+        state: enabled
+
+    - name: install ghostty with snap on ubuntu with --classic
+      ansible.builtin.command:
+        cmd: snap install ghostty --classic
+      when: ansible_distribution == 'Ubuntu'
+      changed_when: false
+      failed_when: false
+
+    - name: generate ghostty config file with ghostty config
+      ansible.builtin.command:
+        cmd: ghostty config
+      become: false
+      register: ghostty_config
+      changed_when: false
+      failed_when: false
+
+    - name: edit ghostty theme in config to theme=tokyonight-storm
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.config/ghostty/config"
+        line: 'theme=tokyonight-storm'
+        insertafter: EOF
+        state: present

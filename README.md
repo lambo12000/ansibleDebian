@@ -29,6 +29,41 @@ The playbook executes the following tasks:
 8.  **Install Ghostty (Snap):**
     *   Installs `ghostty` with snap if the operating system is detected as Ubuntu.
 
+## Playbook Structure (Step-Based)
+
+This repository uses a step-based approach for Ansible provisioning, ensuring dependencies are respected and each phase is clear and maintainable.
+
+### Steps:
+
+- **step1_base_setup.yaml**: Installs base system packages, desktop environment, and core utilities.
+- **step2_user_env.yaml**: Sets up user environment, shell aliases, i3 config, and Oh My Zsh with Powerlevel10k theme.
+- **step3_apps_services.yaml**: Configures UFW firewall and installs/configures Ghostty terminal.
+- **site.yaml**: Master playbook that runs all steps in order.
+
+### Usage
+
+To run the full setup:
+
+```sh
+ansible-playbook -i invintory.ini site.yaml
+```
+
+Or run individual steps:
+
+```sh
+ansible-playbook -i invintory.ini step1_base_setup.yaml
+ansible-playbook -i invintory.ini step2_user_env.yaml
+ansible-playbook -i invintory.ini step3_apps_services.yaml
+```
+
+### Rationale
+
+Splitting the playbook ensures each stage only runs after its dependencies are met, makes debugging easier, and keeps the automation robust and simple.
+
+## Original Playbook
+
+The previous monolithic playbook has been split for clarity and maintainability. See the new step-based files listed above.
+
 ## How to Run
 
 Execute the playbook from within the `ansibleDebian` directory using the following command:

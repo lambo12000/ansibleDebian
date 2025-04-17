@@ -1,0 +1,38 @@
+- name: Step 1: Base System Setup
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Update apt cache and install core tools
+      apt:
+        name:
+          - zsh
+          - vim
+          - nala
+          - git
+          - ufw
+          - firefox
+          - default-jre
+        state: present
+        update_cache: yes
+
+    - name: Install Desktop Environment components
+      apt:
+        name:
+          - xserver-xorg
+          - i3
+          - lightdm
+        state: present
+
+    - name: Install Additional Utilities
+      apt:
+        name:
+          - kitty
+          - suckless-tools
+        state: present
+
+    - name: Refresh snap packages if running Ubuntu
+      ansible.builtin.command:
+        cmd: snap refresh
+      when: ansible_distribution == 'Ubuntu'
+      changed_when: false
+      failed_when: false
