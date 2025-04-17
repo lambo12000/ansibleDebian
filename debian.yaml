@@ -16,91 +16,9 @@
         state: present
         update_cache: yes
       become: true
-
-    # --- zsh --- #
-    - name: Change shell to zsh for user
-      ansible.builtin.user:
-        name: "{{ ansible_user_id }}"
-        shell: /bin/zsh
-      become: true
-      register: shell_change
-      failed_when: shell_change is failed
-
-    - name: Set ZSH as default shell using chsh (fallback method)
-      ansible.builtin.command:
-        cmd: "chsh -s /bin/zsh {{ ansible_user_id }}"
-      become: true
-      register: chsh_result
-      changed_when: chsh_result.rc == 0
-      failed_when: chsh_result.rc != 0
-      when: shell_change is failed
-
-    - name: Ensure .oh-my-zsh directory doesn't exist before installation
-      ansible.builtin.stat:
-        path: "{{ ansible_env.HOME }}/.oh-my-zsh"
-      register: ohmyzsh_dir
-      become: false
-
-    - name: Install Oh My Zsh (unattended)
-      ansible.builtin.shell: |
-        curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended
-      args:
-        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
-      become: false
-      when: not ohmyzsh_dir.stat.exists
-      register: ohmyzsh_install
-      failed_when: ohmyzsh_install.rc != 0 and not ohmyzsh_dir.stat.exists
-
-    - name: Clone Powerlevel10k theme
-      ansible.builtin.git:
-        repo: 'https://github.com/romkatv/powerlevel10k.git'
-        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
-        depth: 1
-        version: master
-      become: false
-      register: p10k_clone
-      failed_when: p10k_clone is failed
-
-    - name: Set Powerlevel10k as Oh My Zsh theme
-      ansible.builtin.lineinfile:
-        path: "{{ ansible_env.HOME }}/.zshrc"
-        regexp: '^ZSH_THEME='
-        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
-        state: present
-        backup: yes
-      become: false
-      register: theme_set
-      failed_when: theme_set is failed
-    # --- End zsh --- #
-
-    # --- Ghostty --- #
-    - name: install ghostty with snap on ubuntu with --classic
-      ansible.builtin.command:
-        cmd: snap install ghostty --classic
-      when: ansible_distribution == 'Ubuntu'
-      become: true
-      changed_when: false # snap install output is verbose, don't mark as changed unless it errors
-      failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
-      
-    - name: generate ghostty config file with ghostty config
-      ansible.builtin.command:
-        cmd: ghostty config
-      become: false #important to not generate config as root
-      register: ghostty_config
-      changed_when: false # ghostty config output is verbose, don't mark as changed unless it errors
-      failed_when: false # Allow to fail gracefully if ghostty isn't installed or has issues
-
-    - name: edit ghostty theme in config to theme=tokyonight-storm
-      ansible.builtin.lineinfile:
-        path: "{{ ansible_env.HOME }}/.config/ghostty/config"
-        line: 'theme=tokyonight-storm'
-        insertafter: EOF
-        state: present
-
-    # --- End Ghostty --- #
-
-    # --- Install Desktop Environment components --- #
-    - name: Install Desktop Environment components
+    
+      # --- Install Desktop Environment components --- #
+      - name: Install Desktop Environment components
       apt:
         name:
           - xserver-xorg
@@ -185,3 +103,88 @@
       become: true
 
     # --- End ufw Config --- #
+
+    # --- zsh --- #
+    - name: Change shell to zsh for user
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        shell: /bin/zsh
+      become: true
+      register: shell_change
+      failed_when: shell_change is failed
+
+    - name: Set ZSH as default shell using chsh (fallback method)
+      ansible.builtin.command:
+        cmd: "chsh -s /bin/zsh {{ ansible_user_id }}"
+      become: true
+      register: chsh_result
+      changed_when: chsh_result.rc == 0
+      failed_when: chsh_result.rc != 0
+      when: shell_change is failed
+
+    - name: Ensure .oh-my-zsh directory doesn't exist before installation
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      register: ohmyzsh_dir
+      become: false
+
+    - name: Install Oh My Zsh (unattended)
+      ansible.builtin.shell: |
+        curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended
+      args:
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      become: false
+      when: not ohmyzsh_dir.stat.exists
+      register: ohmyzsh_install
+      failed_when: ohmyzsh_install.rc != 0 and not ohmyzsh_dir.stat.exists
+
+    - name: Clone Powerlevel10k theme
+      ansible.builtin.git:
+        repo: 'https://github.com/romkatv/powerlevel10k.git'
+        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        depth: 1
+        version: master
+      become: false
+      register: p10k_clone
+      failed_when: p10k_clone is failed
+
+    - name: Set Powerlevel10k as Oh My Zsh theme
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+        state: present
+        backup: yes
+      become: false
+      register: theme_set
+      failed_when: theme_set is failed
+    # --- End zsh --- #
+
+    # --- Ghostty --- #
+    - name: install ghostty with snap on ubuntu with --classic
+      ansible.builtin.command:
+        cmd: snap install ghostty --classic
+      when: ansible_distribution == 'Ubuntu'
+      become: true
+      changed_when: false # snap install output is verbose, don't mark as changed unless it errors
+      failed_when: false # Allow to fail gracefully if snap isn't installed or has issues
+      
+    - name: generate ghostty config file with ghostty config
+      ansible.builtin.command:
+        cmd: ghostty config
+      become: false #important to not generate config as root
+      register: ghostty_config
+      changed_when: false # ghostty config output is verbose, don't mark as changed unless it errors
+      failed_when: false # Allow to fail gracefully if ghostty isn't installed or has issues
+
+
+    - name: edit ghostty theme in config to theme=tokyonight-storm
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.config/ghostty/config"
+        line: 'theme=tokyonight-storm'
+        insertafter: EOF
+        state: present
+
+    # --- End Ghostty --- #
+
+
